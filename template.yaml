@@ -17,13 +17,6 @@ blueprint:
           filter:
             - integration: mqtt
 
-    z2m_topic:
-      name: "[[input.z2m_topic.name]]"
-      description: "[[input.z2m_topic.description]]"
-      default: ""
-      selector:
-        text:
-
     media_players:
       name: "[[input.media_players.name]]"
       description: "[[input.media_players.description]]"
@@ -91,8 +84,8 @@ max: 20
 
 trigger_variables:
   z2m_device_id: !input z2m_device
-  z2m_topic_override: !input z2m_topic
-  z2m_mqtt_topic: "{{ z2m_topic_override | trim if z2m_topic_override | trim != '' else 'zigbee2mqtt/' ~ device_attr(z2m_device_id, 'name') }}"
+  z2m_device_topic_name: "{{ device_name(z2m_device_id) }}"
+  z2m_mqtt_topic: "{{ 'zigbee2mqtt/' ~ z2m_device_topic_name }}"
 
 variables:
   media_player_ids: !input media_players
