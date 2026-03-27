@@ -1,0 +1,23 @@
+{
+  "blueprint.name": "Volume Knob (Zigbee2MQTT)",
+  "blueprint.description": "Control media player volume with a Zigbee2MQTT rotary knob (e.g. IKEA SYMFONISK). Rotation controls volume with acceleration support, and button presses can be configured for mute, play/pause, or power toggle.",
+  "blueprint.version.line": "Version: {version}",
+  "input.z2m_device_topic.name": "Zigbee2MQTT device name",
+  "input.z2m_device_topic.description": "The friendly name of the device in Zigbee2MQTT (used as the MQTT topic).",
+  "input.media_players.name": "Media player(s)",
+  "input.media_players.description": "One or more media players to control with the knob.",
+  "input.button_settings.name": "Button actions",
+  "input.single_click_action.name": "Single click",
+  "input.single_click_action.description": "Action to perform on a single click.",
+  "input.double_click_action.name": "Double click",
+  "input.double_click_action.description": "Action to perform on a double click.",
+  "input.long_press_action.name": "Long press",
+  "input.long_press_action.description": "Action to perform on a long press.",
+  "option.mute": "Toggle mute",
+  "option.toggle": "Toggle on/off",
+  "option.play_pause": "Play / Pause",
+  "option.none": "No action",
+  "trigger.rotation.alias": "Rotation event from Z2M device",
+  "trigger.button.alias": "Button event from Z2M device",
+  "condition.players_available.alias": "At least one media player is available"
+}

@@ -1,0 +1,203 @@
+blueprint:
+  name: "[[blueprint.name]] ([[blueprint.version]])"
+  description: |-
+    [[blueprint.description]]
+
+    [[blueprint.version.line]] — [Changelog](https://github.com/nicolinuxfr/volume-knob-blueprint/blob/main/CHANGELOG.md#[[blueprint.version.nodots]])
+  domain: automation
+  homeassistant:
+    min_version: 2024.6.0
+  source_url: https://github.com/nicolinuxfr/volume-knob-blueprint/blob/main/template.yaml
+  input:
+    z2m_device_topic:
+      name: "[[input.z2m_device_topic.name]]"
+      description: "[[input.z2m_device_topic.description]]"
+      selector:
+        text:
+
+    media_players:
+      name: "[[input.media_players.name]]"
+      description: "[[input.media_players.description]]"
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: media_player
+
+    button_settings:
+      name: "[[input.button_settings.name]]"
+      icon: mdi:gesture-tap-button
+      collapsed: true
+      input:
+        single_click_action:
+          name: "[[input.single_click_action.name]]"
+          description: "[[input.single_click_action.description]]"
+          default: "mute"
+          selector:
+            select:
+              options:
+                - label: "[[option.mute]]"
+                  value: "mute"
+                - label: "[[option.toggle]]"
+                  value: "toggle"
+                - label: "[[option.play_pause]]"
+                  value: "play_pause"
+                - label: "[[option.none]]"
+                  value: "none"
+
+        double_click_action:
+          name: "[[input.double_click_action.name]]"
+          description: "[[input.double_click_action.description]]"
+          default: "play_pause"
+          selector:
+            select:
+              options:
+                - label: "[[option.mute]]"
+                  value: "mute"
+                - label: "[[option.toggle]]"
+                  value: "toggle"
+                - label: "[[option.play_pause]]"
+                  value: "play_pause"
+                - label: "[[option.none]]"
+                  value: "none"
+
+        long_press_action:
+          name: "[[input.long_press_action.name]]"
+          description: "[[input.long_press_action.description]]"
+          default: "toggle"
+          selector:
+            select:
+              options:
+                - label: "[[option.mute]]"
+                  value: "mute"
+                - label: "[[option.toggle]]"
+                  value: "toggle"
+                - label: "[[option.play_pause]]"
+                  value: "play_pause"
+                - label: "[[option.none]]"
+                  value: "none"
+
+mode: queued
+max: 20
+
+variables:
+  media_player_ids: !input media_players
+  single_action: !input single_click_action
+  double_action: !input double_click_action
+  long_action: !input long_press_action
+  available_players: >
+    {{ expand(media_player_ids)
+       | rejectattr('state', 'in', ['off', 'unknown', 'unavailable'])
+       | map(attribute='entity_id')
+       | list }}
+
+trigger_variables:
+  z2m_topic: !input z2m_device_topic
+
+trigger:
+  - trigger: mqtt
+    alias: "[[trigger.rotation.alias]]"
+    topic: "zigbee2mqtt/{{ z2m_topic }}"
+    id: rotation
+
+  - trigger: mqtt
+    alias: "[[trigger.button.alias]]"
+    topic: "zigbee2mqtt/{{ z2m_topic }}/action"
+    id: button
+
+action:
+  - choose:
+      # ── Rotation: volume up / down with acceleration ──
+      - conditions:
+          - condition: trigger
+            id: rotation
+          - condition: template
+            value_template: >
+              {{ trigger.payload_json.action in
+                 ['brightness_step_up', 'brightness_step_down'] }}
+          - condition: template
+            alias: "[[condition.players_available.alias]]"
+            value_template: "{{ available_players | count > 0 }}"
+        sequence:
+          - variables:
+              direction: >
+                {{ 'up' if trigger.payload_json.action == 'brightness_step_up' else 'down' }}
+              step_size: >
+                {{ trigger.payload_json.action_step_size | default(0) | int(0) }}
+              action_rate: >
+                {{ trigger.payload_json.action_rate | default(0) | int(0) }}
+              repeat_count: >
+                {% set score = step_size + (action_rate * 6) %}
+                {% if score <= 35 %}
+                  1
+                {% elif score <= 60 %}
+                  2
+                {% elif score <= 85 %}
+                  4
+                {% elif score <= 110 %}
+                  6
+                {% elif score <= 140 %}
+                  10
+                {% else %}
+                  12
+                {% endif %}
+          - repeat:
+              count: "{{ repeat_count | int }}"
+              sequence:
+                - action: "media_player.volume_{{ direction }}"
+                  target:
+                    entity_id: "{{ available_players }}"
+
+      # ── Button events (single / double / long press) ──
+      - conditions:
+          - condition: trigger
+            id: button
+        sequence:
+          - variables:
+              button_payload: "{{ trigger.payload }}"
+              resolved_action: >
+                {% if button_payload == 'toggle' %}
+                  {{ single_action }}
+                {% elif button_payload == 'double' %}
+                  {{ double_action }}
+                {% elif button_payload == 'hue_move' %}
+                  {{ long_action }}
+                {% else %}
+                  none
+                {% endif %}
+          - condition: template
+            value_template: "{{ resolved_action | trim != 'none' }}"
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ resolved_action | trim == 'mute' }}"
+                sequence:
+                  - condition: template
+                    alias: "[[condition.players_available.alias]]"
+                    value_template: "{{ available_players | count > 0 }}"
+                  - repeat:
+                      for_each: "{{ available_players }}"
+                      sequence:
+                        - action: media_player.volume_mute
+                          target:
+                            entity_id: "{{ repeat.item }}"
+                          data:
+                            is_volume_muted: >
+                              {{ not state_attr(repeat.item, 'is_volume_muted') | default(false) }}
+              - conditions:
+                  - condition: template
+                    value_template: "{{ resolved_action | trim == 'toggle' }}"
+                sequence:
+                  - action: media_player.toggle
+                    target:
+                      entity_id: "{{ media_player_ids }}"
+              - conditions:
+                  - condition: template
+                    value_template: "{{ resolved_action | trim == 'play_pause' }}"
+                sequence:
+                  - condition: template
+                    alias: "[[condition.players_available.alias]]"
+                    value_template: "{{ available_players | count > 0 }}"
+                  - action: media_player.media_play_pause
+                    target:
+                      entity_id: "{{ available_players }}"

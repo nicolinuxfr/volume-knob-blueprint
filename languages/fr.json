@@ -1,0 +1,23 @@
+{
+  "blueprint.name": "Bouton de volume (Zigbee2MQTT)",
+  "blueprint.description": "Contrôler le volume d'un lecteur multimédia avec un bouton rotatif Zigbee2MQTT (ex. IKEA SYMFONISK). La rotation contrôle le volume avec accélération, et les clics peuvent être configurés pour couper le son, lecture/pause ou allumer/éteindre.",
+  "blueprint.version.line": "Version : {version}",
+  "input.z2m_device_topic.name": "Nom de l'appareil Zigbee2MQTT",
+  "input.z2m_device_topic.description": "Le nom convivial de l'appareil dans Zigbee2MQTT (utilisé comme topic MQTT).",
+  "input.media_players.name": "Lecteur(s) multimédia",
+  "input.media_players.description": "Le ou les lecteurs multimédia à contrôler avec le bouton.",
+  "input.button_settings.name": "Actions des boutons",
+  "input.single_click_action.name": "Simple clic",
+  "input.single_click_action.description": "Action à effectuer lors d'un simple clic.",
+  "input.double_click_action.name": "Double clic",
+  "input.double_click_action.description": "Action à effectuer lors d'un double clic.",
+  "input.long_press_action.name": "Appui long",
+  "input.long_press_action.description": "Action à effectuer lors d'un appui long.",
+  "option.mute": "Couper/rétablir le son",
+  "option.toggle": "Allumer/éteindre",
+  "option.play_pause": "Lecture / Pause",
+  "option.none": "Aucune action",
+  "trigger.rotation.alias": "Événement de rotation de l'appareil Z2M",
+  "trigger.button.alias": "Événement de bouton de l'appareil Z2M",
+  "condition.players_available.alias": "Au moins un lecteur multimédia est disponible"
+}
