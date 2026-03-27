@@ -1,9 +1,9 @@
 {
   "blueprint.name": "Bouton de volume (Zigbee2MQTT)",
-  "blueprint.description": "Contrôler le volume d'un lecteur multimédia avec un bouton rotatif Zigbee2MQTT (ex. IKEA SYMFONISK). La rotation contrôle le volume avec accélération, et les clics peuvent être configurés pour couper le son, lecture/pause ou allumer/éteindre.",
+  "blueprint.description": "Contrôler le volume d'un lecteur multimédia avec un bouton rotatif Zigbee2MQTT (ex. Moes, IKEA SYMFONISK). La rotation contrôle le volume avec accélération, et les clics peuvent être configurés pour couper le son, lecture/pause ou allumer/éteindre.",
   "blueprint.version.line": "Version : {version}",
   "input.z2m_device.name": "Appareil Zigbee2MQTT",
-  "input.z2m_device.description": "Le bouton rotatif Zigbee2MQTT à utiliser pour le contrôle du volume. Son nom dans Home Assistant doit correspondre au nom convivial Zigbee2MQTT.",
+  "input.z2m_device.description": "Le bouton rotatif Zigbee2MQTT à utiliser pour le contrôle du volume.",
   "input.media_players.name": "Lecteur(s) multimédia",
   "input.media_players.description": "Le ou les lecteurs multimédia à contrôler avec le bouton.",
   "input.button_settings.name": "Actions des boutons",
@@ -17,7 +17,5 @@
   "option.toggle": "Allumer/éteindre",
   "option.play_pause": "Lecture / Pause",
   "option.none": "Aucune action",
-  "trigger.rotation.alias": "Événement de rotation de l'appareil Z2M",
-  "trigger.button.alias": "Événement de bouton de l'appareil Z2M",
   "condition.players_available.alias": "Au moins un lecteur multimédia est disponible"
 }

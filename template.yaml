@@ -87,47 +87,76 @@ variables:
   single_action: !input single_click_action
   double_action: !input double_click_action
   long_action: !input long_press_action
+  z2m_device_id: !input z2m_device
   available_players: >
     {{ expand(media_player_ids)
        | rejectattr('state', 'in', ['off', 'unknown', 'unavailable'])
        | map(attribute='entity_id')
        | list }}
-
-trigger_variables:
-  z2m_device_id: !input z2m_device
+  step_size_entity: >
+    {{ device_entities(z2m_device_id)
+       | select('search', 'action_step_size')
+       | first | default('') }}
+  action_rate_entity: >
+    {{ device_entities(z2m_device_id)
+       | select('search', 'action_rate$')
+       | first | default('') }}
 
 trigger:
-  - trigger: mqtt
-    alias: "[[trigger.rotation.alias]]"
-    topic: "zigbee2mqtt/{{ device_attr(z2m_device_id, 'name') }}"
-    id: rotation
+  - trigger: device
+    device_id: !input z2m_device
+    domain: mqtt
+    type: action
+    subtype: brightness_step_up
+    id: step_up
 
-  - trigger: mqtt
-    alias: "[[trigger.button.alias]]"
-    topic: "zigbee2mqtt/{{ device_attr(z2m_device_id, 'name') }}/action"
-    id: button
+  - trigger: device
+    device_id: !input z2m_device
+    domain: mqtt
+    type: action
+    subtype: brightness_step_down
+    id: step_down
+
+  - trigger: device
+    device_id: !input z2m_device
+    domain: mqtt
+    type: action
+    subtype: toggle
+    id: single_click
+
+  - trigger: device
+    device_id: !input z2m_device
+    domain: mqtt
+    type: action
+    subtype: double
+    id: double_click
+
+  - trigger: device
+    device_id: !input z2m_device
+    domain: mqtt
+    type: action
+    subtype: hue_move
+    id: long_press
 
 action:
   - choose:
       # ── Rotation: volume up / down with acceleration ──
       - conditions:
           - condition: trigger
-            id: rotation
-          - condition: template
-            value_template: >
-              {{ trigger.payload_json.action in
-                 ['brightness_step_up', 'brightness_step_down'] }}
+            id:
+              - step_up
+              - step_down
           - condition: template
             alias: "[[condition.players_available.alias]]"
             value_template: "{{ available_players | count > 0 }}"
         sequence:
           - variables:
               direction: >
-                {{ 'up' if trigger.payload_json.action == 'brightness_step_up' else 'down' }}
+                {{ 'up' if trigger.id == 'step_up' else 'down' }}
               step_size: >
-                {{ trigger.payload_json.action_step_size | default(0) | int(0) }}
+                {{ states(step_size_entity) | int(0) }}
               action_rate: >
-                {{ trigger.payload_json.action_rate | default(0) | int(0) }}
+                {{ states(action_rate_entity) | int(0) }}
               repeat_count: >
                 {% set score = step_size + (action_rate * 6) %}
                 {% if score <= 35 %}
@@ -153,16 +182,18 @@ action:
       # ── Button events (single / double / long press) ──
       - conditions:
           - condition: trigger
-            id: button
+            id:
+              - single_click
+              - double_click
+              - long_press
         sequence:
           - variables:
-              button_payload: "{{ trigger.payload }}"
               resolved_action: >
-                {% if button_payload == 'toggle' %}
+                {% if trigger.id == 'single_click' %}
                   {{ single_action }}
-                {% elif button_payload == 'double' %}
+                {% elif trigger.id == 'double_click' %}
                   {{ double_action }}
-                {% elif button_payload == 'hue_move' %}
+                {% elif trigger.id == 'long_press' %}
                   {{ long_action }}
                 {% else %}
                   none

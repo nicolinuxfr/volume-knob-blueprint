@@ -1,9 +1,9 @@
 {
   "blueprint.name": "Volume Knob (Zigbee2MQTT)",
-  "blueprint.description": "Control media player volume with a Zigbee2MQTT rotary knob (e.g. IKEA SYMFONISK). Rotation controls volume with acceleration support, and button presses can be configured for mute, play/pause, or power toggle.",
+  "blueprint.description": "Control media player volume with a Zigbee2MQTT rotary knob (e.g. Moes, IKEA SYMFONISK). Rotation controls volume with acceleration support, and button presses can be configured for mute, play/pause, or power toggle.",
   "blueprint.version.line": "Version: {version}",
   "input.z2m_device.name": "Zigbee2MQTT device",
-  "input.z2m_device.description": "The Zigbee2MQTT rotary knob to use as volume control. Its name in Home Assistant must match the Zigbee2MQTT friendly name.",
+  "input.z2m_device.description": "The Zigbee2MQTT rotary knob to use as volume control.",
   "input.media_players.name": "Media player(s)",
   "input.media_players.description": "One or more media players to control with the knob.",
   "input.button_settings.name": "Button actions",
@@ -17,7 +17,5 @@
   "option.toggle": "Toggle on/off",
   "option.play_pause": "Play / Pause",
   "option.none": "No action",
-  "trigger.rotation.alias": "Rotation event from Z2M device",
-  "trigger.button.alias": "Button event from Z2M device",
   "condition.players_available.alias": "At least one media player is available"
 }
