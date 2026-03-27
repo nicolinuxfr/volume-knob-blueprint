@@ -95,17 +95,16 @@ variables:
 
 trigger_variables:
   z2m_device_id: !input z2m_device
-  z2m_topic: "{{ device_attr(z2m_device_id, 'name') }}"
 
 trigger:
   - trigger: mqtt
     alias: "[[trigger.rotation.alias]]"
-    topic: "zigbee2mqtt/{{ z2m_topic }}"
+    topic: "zigbee2mqtt/{{ device_attr(z2m_device_id, 'name') }}"
     id: rotation
 
   - trigger: mqtt
     alias: "[[trigger.button.alias]]"
-    topic: "zigbee2mqtt/{{ z2m_topic }}/action"
+    topic: "zigbee2mqtt/{{ device_attr(z2m_device_id, 'name') }}/action"
     id: button
 
 action:
