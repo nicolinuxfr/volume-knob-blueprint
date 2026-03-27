@@ -24,7 +24,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--filename",
-        default="ceiling_fan.yaml",
+        default="volume_knob.yaml",
         help="Filename used for each generated blueprint.",
     )
     parser.add_argument(
