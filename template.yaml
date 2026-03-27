@@ -92,13 +92,7 @@ max: 20
 trigger_variables:
   z2m_device_id: !input z2m_device
   z2m_topic_override: !input z2m_topic
-  z2m_mqtt_topic: >
-    {% set override = z2m_topic_override | trim %}
-    {% if override != '' %}
-      {{ override }}
-    {% else %}
-      {{ 'zigbee2mqtt/' ~ device_attr(z2m_device_id, 'name') }}
-    {% endif %}
+  z2m_mqtt_topic: "{{ z2m_topic_override | trim if z2m_topic_override | trim != '' else 'zigbee2mqtt/' ~ device_attr(z2m_device_id, 'name') }}"
 
 variables:
   media_player_ids: !input media_players
@@ -114,10 +108,10 @@ variables:
 trigger:
   - trigger: mqtt
     id: state
-    topic: "{{ z2m_mqtt_topic }}"
+    topic: "{{ z2m_mqtt_topic | trim }}"
   - trigger: mqtt
     id: action
-    topic: "{{ z2m_mqtt_topic }}/action"
+    topic: "{{ z2m_mqtt_topic | trim }}/action"
 
 action:
   - choose:
