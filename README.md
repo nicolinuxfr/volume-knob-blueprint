@@ -13,9 +13,9 @@ This blueprint lets you control one or more media players using a Zigbee2MQTT ro
 
 ## How it works
 
-1. The blueprint listens on the Zigbee2MQTT base topic for rotation events and on the `/action` subtopic for button presses.
-2. The Home Assistant device selector is still present. By default, the blueprint derives the base topic from the selected Home Assistant device name as `zigbee2mqtt/<device name>`.
-3. **Rotation** adjusts volume up or down. The speed of rotation is detected via `action_step_size` and `action_rate` from the MQTT payload, and translated into a repeat count (1 to 12 volume steps per event) for smooth acceleration.
+1. The blueprint uses only the Home Assistant device selector.
+2. Triggers are driven by the MQTT action events exposed by the selected device.
+3. **Rotation** adjusts volume up or down. Rotation speed is read from the device's `action_step_size` and `action_rate` sensors, then translated into a repeat count (1 to 12 volume steps per event) for smooth acceleration.
 4. **Button presses** (single click, double click, long press) are each mapped to a configurable action: toggle mute, toggle power, play/pause, or no action.
 5. Volume and mute/play actions only target media players that are currently available (not off, unknown, or unavailable). The toggle action targets all configured players, so you can turn on an off player.
 
@@ -38,6 +38,6 @@ This blueprint works with any Zigbee2MQTT rotary encoder that sends `brightness_
 
 ## Known limitations
 
-- Automatic topic detection assumes the Home Assistant device name exactly matches the Zigbee2MQTT topic suffix.
+- The selected device must expose MQTT action events together with `action_step_size` and `action_rate` sensors.
 - Mute toggle checks each media player's mute state individually. If players have mixed mute states, each one will be toggled independently.
 - The acceleration curve is tuned for the IKEA SYMFONISK. Other knobs may need different thresholds.

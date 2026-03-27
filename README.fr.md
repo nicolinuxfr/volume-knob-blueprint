@@ -13,9 +13,9 @@ Ce blueprint permet de contrôler un ou plusieurs lecteurs multimédia avec un b
 
 ## Comment ça fonctionne
 
-1. Le blueprint écoute le topic de base Zigbee2MQTT pour les événements de rotation et le sous-topic `/action` pour les clics.
-2. Le sélecteur d'appareil Home Assistant est conservé. Par défaut, le blueprint déduit le topic de base à partir du nom de l'appareil sélectionné sous la forme `zigbee2mqtt/<nom de l'appareil>`.
-3. **La rotation** ajuste le volume vers le haut ou le bas. La vitesse de rotation est détectée via `action_step_size` et `action_rate` du payload MQTT, puis traduite en nombre de répétitions (1 à 12 pas de volume par événement) pour une accélération fluide.
+1. Le blueprint utilise uniquement le sélecteur d'appareil Home Assistant.
+2. Les déclenchements passent par les événements d'action MQTT exposés par l'appareil sélectionné.
+3. **La rotation** ajuste le volume vers le haut ou le bas. La vitesse de rotation est lue depuis les capteurs `action_step_size` et `action_rate` du même device, puis traduite en nombre de répétitions (1 à 12 pas de volume par événement) pour une accélération fluide.
 4. **Les clics** (simple, double, appui long) sont chacun associés à une action configurable : couper/rétablir le son, allumer/éteindre, lecture/pause ou aucune action.
 5. Les actions de volume et mute/lecture ne ciblent que les lecteurs multimédia actuellement disponibles (pas éteints, inconnus ou indisponibles). L'action allumer/éteindre cible tous les lecteurs configurés, pour pouvoir allumer un lecteur éteint.
 
@@ -38,6 +38,6 @@ Ce blueprint fonctionne avec tout encodeur rotatif Zigbee2MQTT qui envoie des é
 
 ## Limitations connues
 
-- L'auto-détection du topic suppose que le nom de l'appareil dans Home Assistant correspond exactement au suffixe du topic Zigbee2MQTT.
+- Le device sélectionné doit exposer des événements d'action MQTT ainsi que les capteurs `action_step_size` et `action_rate`.
 - La bascule du mute vérifie l'état de chaque lecteur individuellement. Si les lecteurs ont des états mute différents, chacun sera basculé indépendamment.
 - La courbe d'accélération est calibrée pour l'IKEA SYMFONISK. D'autres boutons pourraient nécessiter des seuils différents.

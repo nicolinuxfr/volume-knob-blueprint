@@ -82,16 +82,24 @@ blueprint:
 mode: queued
 max: 20
 
-trigger_variables:
-  z2m_device_id: !input z2m_device
-  z2m_device_topic_name: "{{ device_name(z2m_device_id) }}"
-  z2m_mqtt_topic: "{{ 'zigbee2mqtt/' ~ z2m_device_topic_name }}"
-
 variables:
+  z2m_device_id: !input z2m_device
   media_player_ids: !input media_players
   single_action: !input single_click_action
   double_action: !input double_click_action
   long_action: !input long_press_action
+  z2m_step_size_entity: >
+    {{ device_entities(z2m_device_id)
+       | select('match', 'sensor\\..*_action_step_size$')
+       | list
+       | first
+       | default('') }}
+  z2m_action_rate_entity: >
+    {{ device_entities(z2m_device_id)
+       | select('match', 'sensor\\..*_action_rate$')
+       | list
+       | first
+       | default('') }}
   available_players: >
     {{ expand(media_player_ids)
        | rejectattr('state', 'in', ['off', 'unknown', 'unavailable'])
@@ -99,29 +107,51 @@ variables:
        | list }}
 
 trigger:
-  - trigger: mqtt
-    id: state
-    topic: "{{ z2m_mqtt_topic | trim }}"
-  - trigger: mqtt
-    id: action
-    topic: "{{ z2m_mqtt_topic | trim }}/action"
+  - trigger: device
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: brightness_step_up
+    id: brightness_step_up
+  - trigger: device
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: brightness_step_down
+    id: brightness_step_down
+  - trigger: device
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: toggle
+    id: toggle
+  - trigger: device
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: double
+    id: double
+  - trigger: device
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: hue_move
+    id: hue_move
 
 action:
   - choose:
       # ── Rotation: volume up / down with acceleration ──
       - conditions:
           - condition: template
-            value_template: "{{ trigger.id == 'state' }}"
-          - condition: template
-            value_template: "{{ trigger.payload_json.action == 'brightness_step_up' }}"
+            value_template: "{{ trigger.id == 'brightness_step_up' }}"
           - condition: template
             alias: "[[condition.players_available.alias]]"
             value_template: "{{ available_players | count > 0 }}"
         sequence:
           - variables:
               direction: "up"
-              step_size: "{{ trigger.payload_json.action_step_size | default(0) | int(0) }}"
-              action_rate: "{{ trigger.payload_json.action_rate | default(0) | int(0) }}"
+              step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
+              action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
               repeat_count: >
                 {% set score = step_size + (action_rate * 6) %}
                 {% if score <= 35 %}
@@ -147,17 +177,15 @@ action:
       # ── Button events (single / double / long press) ──
       - conditions:
           - condition: template
-            value_template: "{{ trigger.id == 'state' }}"
-          - condition: template
-            value_template: "{{ trigger.payload_json.action == 'brightness_step_down' }}"
+            value_template: "{{ trigger.id == 'brightness_step_down' }}"
           - condition: template
             alias: "[[condition.players_available.alias]]"
             value_template: "{{ available_players | count > 0 }}"
         sequence:
           - variables:
               direction: "down"
-              step_size: "{{ trigger.payload_json.action_step_size | default(0) | int(0) }}"
-              action_rate: "{{ trigger.payload_json.action_rate | default(0) | int(0) }}"
+              step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
+              action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
               repeat_count: >
                 {% set score = step_size + (action_rate * 6) %}
                 {% if score <= 35 %}
@@ -181,9 +209,7 @@ action:
                     entity_id: "{{ available_players }}"
       - conditions:
           - condition: template
-            value_template: "{{ trigger.id == 'action' }}"
-          - condition: template
-            value_template: "{{ trigger.payload == 'toggle' }}"
+            value_template: "{{ trigger.id == 'toggle' }}"
         sequence:
           - condition: template
             value_template: "{{ single_action != 'none' }}"
@@ -223,9 +249,7 @@ action:
                       entity_id: "{{ available_players }}"
       - conditions:
           - condition: template
-            value_template: "{{ trigger.id == 'action' }}"
-          - condition: template
-            value_template: "{{ trigger.payload == 'double' }}"
+            value_template: "{{ trigger.id == 'double' }}"
         sequence:
           - condition: template
             value_template: "{{ double_action != 'none' }}"
@@ -265,9 +289,7 @@ action:
                       entity_id: "{{ available_players }}"
       - conditions:
           - condition: template
-            value_template: "{{ trigger.id == 'action' }}"
-          - condition: template
-            value_template: "{{ trigger.payload == 'hue_move' }}"
+            value_template: "{{ trigger.id == 'hue_move' }}"
         sequence:
           - condition: template
             value_template: "{{ long_action != 'none' }}"
