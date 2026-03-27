@@ -3,7 +3,7 @@
   "blueprint.description": "Control media player volume with a Zigbee2MQTT rotary knob (e.g. Moes, IKEA SYMFONISK). Rotation controls volume with acceleration support, and button presses can be configured for mute, play/pause, or power toggle.",
   "blueprint.version.line": "Version: {version}",
   "input.z2m_device.name": "Zigbee2MQTT device",
-  "input.z2m_device.description": "The Zigbee2MQTT rotary knob to use as volume control.",
+  "input.z2m_device.description": "The Zigbee2MQTT rotary knob to use as volume control. The blueprint keeps the device selector and listens through MQTT device triggers, with direct MQTT topics used as a fallback when detailed rotation payloads are available.",
   "input.media_players.name": "Media player(s)",
   "input.media_players.description": "One or more media players to control with the knob.",
   "input.button_settings.name": "Button actions",

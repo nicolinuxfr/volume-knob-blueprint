@@ -13,10 +13,11 @@ This blueprint lets you control one or more media players using a Zigbee2MQTT ro
 
 ## How it works
 
-1. The blueprint listens to MQTT messages from a Zigbee2MQTT device on two topics: the base topic for rotation events and the `/action` subtopic for button presses.
-2. **Rotation** adjusts volume up or down. The speed of rotation is detected via `action_step_size` and `action_rate` from the MQTT payload, and translated into a repeat count (1 to 12 volume steps per event) for smooth acceleration.
-3. **Button presses** (single click, double click, long press) are each mapped to a configurable action: toggle mute, toggle power, play/pause, or no action.
-4. Volume and mute/play actions only target media players that are currently available (not off, unknown, or unavailable). The toggle action targets all configured players, so you can turn on an off player.
+1. The blueprint keeps the Home Assistant device selector and primarily listens through Zigbee2MQTT MQTT device triggers tied to that selected device.
+2. It also listens to the raw MQTT topics `zigbee2mqtt/<friendly_name>` and `zigbee2mqtt/<friendly_name>/action` as a fallback path, which preserves detailed rotation payload data when available.
+3. **Rotation** adjusts volume up or down. When the raw MQTT payload is available, the speed of rotation is detected via `action_step_size` and `action_rate`, then translated into a repeat count (1 to 12 volume steps per event) for smooth acceleration. When only the device trigger fires, rotation still works with the base step.
+4. **Button presses** (single click, double click, long press) are each mapped to a configurable action: toggle mute, toggle power, play/pause, or no action.
+5. Volume and mute/play actions only target media players that are currently available (not off, unknown, or unavailable). The toggle action targets all configured players, so you can turn on an off player.
 
 ## Configuration options
 
@@ -37,6 +38,7 @@ This blueprint works with any Zigbee2MQTT rotary encoder that sends `brightness_
 
 ## Known limitations
 
-- The Z2M device is selected via the HA device picker (filtered to MQTT devices). The device name in Home Assistant must match the Zigbee2MQTT friendly name for MQTT topic resolution.
+- The Z2M device is selected via the HA device picker (filtered to MQTT devices). MQTT device triggers are the primary trigger path. The raw MQTT topic fallback still assumes the Home Assistant device name matches the Zigbee2MQTT friendly name.
+- Zigbee2MQTT discovers MQTT device triggers only after the corresponding action has been emitted at least once on the device.
 - Mute toggle checks each media player's mute state individually. If players have mixed mute states, each one will be toggled independently.
 - The acceleration curve is tuned for the IKEA SYMFONISK. Other knobs may need different thresholds.

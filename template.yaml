@@ -99,13 +99,66 @@ variables:
 
 trigger:
   - trigger: mqtt
+    id: mqtt_base
     topic: "{{ z2m_mqtt_topic }}"
+  - trigger: mqtt
+    id: mqtt_action
+    topic: "{{ z2m_mqtt_topic }}/action"
+  - trigger: device
+    id: device_rotate_up
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: brightness_step_up
+  - trigger: device
+    id: device_rotate_down
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: brightness_step_down
+  - trigger: device
+    id: device_single
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: toggle
+  - trigger: device
+    id: device_double
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: double
+  - trigger: device
+    id: device_long
+    domain: mqtt
+    device_id: !input z2m_device
+    type: action
+    subtype: hue_move
 
 action:
   - variables:
-      z2m_action: "{{ trigger.payload_json.action | default('') }}"
-      step_size: "{{ trigger.payload_json.action_step_size | default(0) | int(0) }}"
-      action_rate: "{{ trigger.payload_json.action_rate | default(0) | int(0) }}"
+      z2m_action: >
+        {% if trigger.platform == 'mqtt' %}
+          {% if trigger.topic.endswith('/action') %}
+            {{ trigger.payload | default('') }}
+          {% else %}
+            {{ trigger.payload_json.action | default(trigger.payload | default('')) }}
+          {% endif %}
+        {% else %}
+          {{ trigger.subtype | default('') }}
+        {% endif %}
+      step_size: >
+        {% if trigger.platform == 'mqtt' and not trigger.topic.endswith('/action') %}
+          {{ trigger.payload_json.action_step_size | default(0) | int(0) }}
+        {% else %}
+          0
+        {% endif %}
+      action_rate: >
+        {% if trigger.platform == 'mqtt' and not trigger.topic.endswith('/action') %}
+          {{ trigger.payload_json.action_rate | default(0) | int(0) }}
+        {% else %}
+          0
+        {% endif %}
   - choose:
       # ── Rotation: volume up / down with acceleration ──
       - conditions:

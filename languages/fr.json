@@ -3,7 +3,7 @@
   "blueprint.description": "Contrôler le volume d'un lecteur multimédia avec un bouton rotatif Zigbee2MQTT (ex. Moes, IKEA SYMFONISK). La rotation contrôle le volume avec accélération, et les clics peuvent être configurés pour couper le son, lecture/pause ou allumer/éteindre.",
   "blueprint.version.line": "Version : {version}",
   "input.z2m_device.name": "Appareil Zigbee2MQTT",
-  "input.z2m_device.description": "Le bouton rotatif Zigbee2MQTT à utiliser pour le contrôle du volume.",
+  "input.z2m_device.description": "Le bouton rotatif Zigbee2MQTT à utiliser pour le contrôle du volume. Le blueprint conserve le sélecteur d'appareil et écoute via les déclencheurs d'appareil MQTT, avec les topics MQTT directs en secours lorsque les détails de rotation sont disponibles.",
   "input.media_players.name": "Lecteur(s) multimédia",
   "input.media_players.description": "Le ou les lecteurs multimédia à contrôler avec le bouton.",
   "input.button_settings.name": "Actions des boutons",

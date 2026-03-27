@@ -13,10 +13,11 @@ Ce blueprint permet de contrôler un ou plusieurs lecteurs multimédia avec un b
 
 ## Comment ça fonctionne
 
-1. Le blueprint écoute les messages MQTT d'un appareil Zigbee2MQTT sur deux topics : le topic de base pour les événements de rotation et le sous-topic `/action` pour les clics.
-2. **La rotation** ajuste le volume vers le haut ou le bas. La vitesse de rotation est détectée via `action_step_size` et `action_rate` du payload MQTT, et traduite en nombre de répétitions (1 à 12 pas de volume par événement) pour une accélération fluide.
-3. **Les clics** (simple, double, appui long) sont chacun associés à une action configurable : couper/rétablir le son, allumer/éteindre, lecture/pause ou aucune action.
-4. Les actions de volume et mute/lecture ne ciblent que les lecteurs multimédia actuellement disponibles (pas éteints, inconnus ou indisponibles). L'action allumer/éteindre cible tous les lecteurs configurés, pour pouvoir allumer un lecteur éteint.
+1. Le blueprint conserve le sélecteur d'appareil Home Assistant et écoute en priorité les déclencheurs d'appareil MQTT Zigbee2MQTT liés à l'appareil sélectionné.
+2. Il écoute aussi les topics MQTT bruts `zigbee2mqtt/<friendly_name>` et `zigbee2mqtt/<friendly_name>/action` comme voie de secours, ce qui permet de conserver les détails de rotation quand ils sont disponibles.
+3. **La rotation** ajuste le volume vers le haut ou le bas. Quand le payload MQTT brut est disponible, la vitesse de rotation est détectée via `action_step_size` et `action_rate`, puis traduite en nombre de répétitions (1 à 12 pas de volume par événement) pour une accélération fluide. Si seul le déclencheur d'appareil remonte, la rotation fonctionne quand même avec le pas de base.
+4. **Les clics** (simple, double, appui long) sont chacun associés à une action configurable : couper/rétablir le son, allumer/éteindre, lecture/pause ou aucune action.
+5. Les actions de volume et mute/lecture ne ciblent que les lecteurs multimédia actuellement disponibles (pas éteints, inconnus ou indisponibles). L'action allumer/éteindre cible tous les lecteurs configurés, pour pouvoir allumer un lecteur éteint.
 
 ## Options de configuration
 
@@ -37,6 +38,7 @@ Ce blueprint fonctionne avec tout encodeur rotatif Zigbee2MQTT qui envoie des é
 
 ## Limitations connues
 
-- L'appareil Z2M est sélectionné via le sélecteur d'appareils HA (filtré sur les appareils MQTT). Le nom de l'appareil dans Home Assistant doit correspondre au nom convivial Zigbee2MQTT pour la résolution du topic MQTT.
+- L'appareil Z2M est sélectionné via le sélecteur d'appareils HA (filtré sur les appareils MQTT). Les déclencheurs d'appareil MQTT sont le chemin principal. Le secours par topics MQTT bruts suppose toujours que le nom de l'appareil dans Home Assistant correspond au nom convivial Zigbee2MQTT.
+- Zigbee2MQTT ne découvre les déclencheurs d'appareil MQTT qu'après qu'une action correspondante a été émise au moins une fois par l'appareil.
 - La bascule du mute vérifie l'état de chaque lecteur individuellement. Si les lecteurs ont des états mute différents, chacun sera basculé indépendamment.
 - La courbe d'accélération est calibrée pour l'IKEA SYMFONISK. D'autres boutons pourraient nécessiter des seuils différents.
