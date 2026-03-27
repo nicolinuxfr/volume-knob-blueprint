@@ -22,7 +22,7 @@ Ce blueprint permet de contrôler un ou plusieurs lecteurs multimédia avec un b
 
 | Input | Description | Défaut |
 |---|---|---|
-| Nom de l'appareil Zigbee2MQTT | Le nom convivial de l'appareil Z2M (utilisé comme topic MQTT) | — |
+| Appareil Zigbee2MQTT | Le bouton rotatif Z2M à utiliser (sélectionné parmi vos appareils MQTT) | — |
 | Lecteur(s) multimédia | Le ou les lecteurs multimédia à contrôler | — |
 | Simple clic | Action lors d'un simple clic | Couper/rétablir le son |
 | Double clic | Action lors d'un double clic | Lecture / Pause |
@@ -37,6 +37,6 @@ Ce blueprint fonctionne avec tout encodeur rotatif Zigbee2MQTT qui envoie des é
 
 ## Limitations connues
 
-- L'appareil Z2M doit être identifié par son nom convivial (topic MQTT), pas par un sélecteur d'appareil HA. Assurez-vous que le nom correspond exactement à celui utilisé par Zigbee2MQTT.
+- L'appareil Z2M est sélectionné via le sélecteur d'appareils HA (filtré sur les appareils MQTT). Le nom de l'appareil dans Home Assistant doit correspondre au nom convivial Zigbee2MQTT pour la résolution du topic MQTT.
 - La bascule du mute vérifie l'état de chaque lecteur individuellement. Si les lecteurs ont des états mute différents, chacun sera basculé indépendamment.
 - La courbe d'accélération est calibrée pour l'IKEA SYMFONISK. D'autres boutons pourraient nécessiter des seuils différents.

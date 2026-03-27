@@ -22,7 +22,7 @@ This blueprint lets you control one or more media players using a Zigbee2MQTT ro
 
 | Input | Description | Default |
 |---|---|---|
-| Zigbee2MQTT device name | The friendly name of the Z2M device (used as the MQTT topic) | — |
+| Zigbee2MQTT device | The Z2M rotary knob to use (selected from your MQTT devices) | — |
 | Media player(s) | One or more media players to control | — |
 | Single click | Action on single click | Toggle mute |
 | Double click | Action on double click | Play / Pause |
@@ -37,6 +37,6 @@ This blueprint works with any Zigbee2MQTT rotary encoder that sends `brightness_
 
 ## Known limitations
 
-- The Z2M device must be identified by its friendly name (MQTT topic), not by a HA device selector. Make sure the name matches exactly what Zigbee2MQTT uses.
+- The Z2M device is selected via the HA device picker (filtered to MQTT devices). The device name in Home Assistant must match the Zigbee2MQTT friendly name for MQTT topic resolution.
 - Mute toggle checks each media player's mute state individually. If players have mixed mute states, each one will be toggled independently.
 - The acceleration curve is tuned for the IKEA SYMFONISK. Other knobs may need different thresholds.

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python scripts/generate_blueprints.py --filename volume_knob.yaml)",
-      "Bash(python3 scripts/generate_blueprints.py --filename volume_knob.yaml)"
+      "Bash(python3 scripts/generate_blueprints.py --filename volume_knob.yaml)",
+      "WebFetch(domain:community.home-assistant.io)"
     ]
   }
 }

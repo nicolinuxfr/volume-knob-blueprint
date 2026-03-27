@@ -9,11 +9,13 @@ blueprint:
     min_version: 2024.6.0
   source_url: https://github.com/nicolinuxfr/volume-knob-blueprint/blob/main/template.yaml
   input:
-    z2m_device_topic:
-      name: "[[input.z2m_device_topic.name]]"
-      description: "[[input.z2m_device_topic.description]]"
+    z2m_device:
+      name: "[[input.z2m_device.name]]"
+      description: "[[input.z2m_device.description]]"
       selector:
-        text:
+        device:
+          filter:
+            - integration: mqtt
 
     media_players:
       name: "[[input.media_players.name]]"
@@ -92,7 +94,8 @@ variables:
        | list }}
 
 trigger_variables:
-  z2m_topic: !input z2m_device_topic
+  z2m_device_id: !input z2m_device
+  z2m_topic: "{{ device_attr(z2m_device_id, 'name') }}"
 
 trigger:
   - trigger: mqtt
