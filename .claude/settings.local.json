@@ -12,7 +12,8 @@
       "Bash(python3 scripts/generate_blueprints.py)",
       "Bash(gh api:*)",
       "Bash(git checkout:*)",
-      "Bash(python3 build.py)"
+      "Bash(python3 build.py)",
+      "mcp__Home_Assistant__ha_deep_search"
     ]
   }
 }
