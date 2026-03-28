@@ -115,7 +115,10 @@ variables:
         {% endif %}
       {% endif %}
     {% endfor %}
-    {{ ns.primary if ns.primary
+    {% set primary_stale = ns.primary
+       and states(ns.primary[0]) == 'playing'
+       and (now() - states[ns.primary[0]].last_updated).total_seconds() > 300 %}
+    {{ ns.primary if ns.primary and not primary_stale
        else (ns.receivers if ns.receivers else ns.all) }}
   mute_players: >
     {% set ns = namespace(primary=[], receivers=[], all=[]) %}
@@ -132,7 +135,10 @@ variables:
         {% endif %}
       {% endif %}
     {% endfor %}
-    {{ ns.primary if ns.primary
+    {% set primary_stale = ns.primary
+       and states(ns.primary[0]) == 'playing'
+       and (now() - states[ns.primary[0]].last_updated).total_seconds() > 300 %}
+    {{ ns.primary if ns.primary and not primary_stale
        else (ns.receivers if ns.receivers else ns.all) }}
   toggle_players: >
     {% set ns = namespace(result=[]) %}
