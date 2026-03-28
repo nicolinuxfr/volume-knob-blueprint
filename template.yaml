@@ -101,7 +101,7 @@ variables:
        | first
        | default('') }}
   volume_players: >
-    {% set ns = namespace(receivers=[], all=[]) %}
+    {% set ns = namespace(primary=[], receivers=[], all=[]) %}
     {% for p in expand(media_player_ids)
        | rejectattr('state', 'in', ['off', 'unknown', 'unavailable']) %}
       {% set feat = p.attributes.supported_features | default(0) %}
@@ -109,19 +109,31 @@ variables:
         {% set ns.all = ns.all + [p.entity_id] %}
         {% if feat | bitwise_and(2048) %}
           {% set ns.receivers = ns.receivers + [p.entity_id] %}
+          {% if feat | bitwise_and(384) %}
+            {% set ns.primary = ns.primary + [p.entity_id] %}
+          {% endif %}
         {% endif %}
       {% endif %}
     {% endfor %}
-    {{ ns.receivers if ns.receivers else ns.all }}
+    {{ ns.primary if ns.primary
+       else (ns.receivers if ns.receivers else ns.all) }}
   mute_players: >
-    {% set ns = namespace(result=[]) %}
+    {% set ns = namespace(primary=[], receivers=[], all=[]) %}
     {% for p in expand(media_player_ids)
        | rejectattr('state', 'in', ['off', 'unknown', 'unavailable']) %}
-      {% if (p.attributes.supported_features | default(0)) | bitwise_and(8) %}
-        {% set ns.result = ns.result + [p.entity_id] %}
+      {% set feat = p.attributes.supported_features | default(0) %}
+      {% if feat | bitwise_and(8) %}
+        {% set ns.all = ns.all + [p.entity_id] %}
+        {% if feat | bitwise_and(2048) %}
+          {% set ns.receivers = ns.receivers + [p.entity_id] %}
+          {% if feat | bitwise_and(384) %}
+            {% set ns.primary = ns.primary + [p.entity_id] %}
+          {% endif %}
+        {% endif %}
       {% endif %}
     {% endfor %}
-    {{ ns.result }}
+    {{ ns.primary if ns.primary
+       else (ns.receivers if ns.receivers else ns.all) }}
   toggle_players: >
     {% set ns = namespace(result=[]) %}
     {% for p in expand(media_player_ids)
