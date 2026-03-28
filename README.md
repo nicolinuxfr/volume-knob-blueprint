@@ -17,7 +17,9 @@ This blueprint lets you control one or more media players using a Zigbee2MQTT ro
 2. Triggers are driven by the MQTT action events exposed by the selected device.
 3. **Rotation** adjusts volume up or down. Rotation speed is read from the device's `action_step_size` and `action_rate` sensors, then translated into a repeat count (1 to 12 volume steps per event) for smooth acceleration.
 4. **Button presses** (single click, double click, long press) are each mapped to a configurable action: toggle mute, toggle power, play/pause, or no action.
-5. Volume and mute/play actions only target media players that are currently available (not off, unknown, or unavailable). The toggle action targets all configured players, so you can turn on an off player.
+5. Each action only targets media players that actually support it, based on `supported_features`. You can safely mix an amplifier and a streaming source in the same list — volume goes to the receiver, play/pause to the source, etc.
+6. When a **receiver** (with source selection) is detected, volume commands are routed exclusively to it, avoiding double volume changes.
+7. **Multi-player sync**: play/pause and mute determine the target state globally (e.g., if any player is playing → pause all), preventing desynchronization.
 
 ## Configuration options
 
@@ -39,5 +41,5 @@ This blueprint works with any Zigbee2MQTT rotary encoder that sends `brightness_
 ## Known limitations
 
 - The selected device must expose MQTT action events together with `action_step_size` and `action_rate` sensors.
-- Mute toggle checks each media player's mute state individually. If players have mixed mute states, each one will be toggled independently.
+- The receiver detection heuristic relies on the `SELECT_SOURCE` feature flag. If no player has it, volume is sent to all volume-capable players.
 - The acceleration curve is tuned for the IKEA SYMFONISK. Other knobs may need different thresholds.

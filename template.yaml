@@ -100,11 +100,46 @@ variables:
        | list
        | first
        | default('') }}
-  available_players: >
-    {{ expand(media_player_ids)
-       | rejectattr('state', 'in', ['off', 'unknown', 'unavailable'])
-       | map(attribute='entity_id')
-       | list }}
+  volume_players: >
+    {% set ns = namespace(receivers=[], all=[]) %}
+    {% for p in expand(media_player_ids)
+       | rejectattr('state', 'in', ['off', 'unknown', 'unavailable']) %}
+      {% set feat = p.attributes.supported_features | default(0) %}
+      {% if feat | bitwise_and(1028) %}
+        {% set ns.all = ns.all + [p.entity_id] %}
+        {% if feat | bitwise_and(2048) %}
+          {% set ns.receivers = ns.receivers + [p.entity_id] %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.receivers if ns.receivers else ns.all }}
+  mute_players: >
+    {% set ns = namespace(result=[]) %}
+    {% for p in expand(media_player_ids)
+       | rejectattr('state', 'in', ['off', 'unknown', 'unavailable']) %}
+      {% if (p.attributes.supported_features | default(0)) | bitwise_and(8) %}
+        {% set ns.result = ns.result + [p.entity_id] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.result }}
+  toggle_players: >
+    {% set ns = namespace(result=[]) %}
+    {% for p in expand(media_player_ids)
+       | rejectattr('state', 'in', ['unknown', 'unavailable']) %}
+      {% if (p.attributes.supported_features | default(0)) | bitwise_and(384) %}
+        {% set ns.result = ns.result + [p.entity_id] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.result }}
+  play_pause_players: >
+    {% set ns = namespace(result=[]) %}
+    {% for p in expand(media_player_ids)
+       | rejectattr('state', 'in', ['off', 'unknown', 'unavailable']) %}
+      {% if (p.attributes.supported_features | default(0)) | bitwise_and(1) %}
+        {% set ns.result = ns.result + [p.entity_id] %}
+      {% endif %}
+    {% endfor %}
+    {{ ns.result }}
 
 trigger:
   - trigger: device
@@ -145,8 +180,8 @@ action:
           - condition: template
             value_template: "{{ trigger.id == 'brightness_step_up' }}"
           - condition: template
-            alias: "[[condition.players_available.alias]]"
-            value_template: "{{ available_players | count > 0 }}"
+            alias: "[[condition.volume_players_available.alias]]"
+            value_template: "{{ volume_players | count > 0 }}"
         sequence:
           - variables:
               direction: "up"
@@ -172,15 +207,15 @@ action:
               sequence:
                 - action: "media_player.volume_{{ direction }}"
                   target:
-                    entity_id: "{{ available_players }}"
+                    entity_id: "{{ volume_players }}"
 
       # ── Button events (single / double / long press) ──
       - conditions:
           - condition: template
             value_template: "{{ trigger.id == 'brightness_step_down' }}"
           - condition: template
-            alias: "[[condition.players_available.alias]]"
-            value_template: "{{ available_players | count > 0 }}"
+            alias: "[[condition.volume_players_available.alias]]"
+            value_template: "{{ volume_players | count > 0 }}"
         sequence:
           - variables:
               direction: "down"
@@ -206,7 +241,7 @@ action:
               sequence:
                 - action: "media_player.volume_{{ direction }}"
                   target:
-                    entity_id: "{{ available_players }}"
+                    entity_id: "{{ volume_players }}"
       - conditions:
           - condition: template
             value_template: "{{ trigger.id == 'toggle' }}"
@@ -219,34 +254,41 @@ action:
                     value_template: "{{ single_action == 'mute' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - repeat:
-                      for_each: "{{ available_players }}"
-                      sequence:
-                        - action: media_player.volume_mute
-                          target:
-                            entity_id: "{{ repeat.item }}"
-                          data:
-                            is_volume_muted: >
-                              {{ not state_attr(repeat.item, 'is_volume_muted') | default(false) }}
+                    alias: "[[condition.mute_players_available.alias]]"
+                    value_template: "{{ mute_players | count > 0 }}"
+                  - action: media_player.volume_mute
+                    target:
+                      entity_id: "{{ mute_players }}"
+                    data:
+                      is_volume_muted: >
+                        {{ expand(mute_players)
+                           | rejectattr('attributes.is_volume_muted', 'eq', true)
+                           | list | count > 0 }}
               - conditions:
                   - condition: template
                     value_template: "{{ single_action == 'toggle' }}"
                 sequence:
+                  - condition: template
+                    alias: "[[condition.toggle_players_available.alias]]"
+                    value_template: "{{ toggle_players | count > 0 }}"
                   - action: media_player.toggle
                     target:
-                      entity_id: "{{ media_player_ids }}"
+                      entity_id: "{{ toggle_players }}"
               - conditions:
                   - condition: template
                     value_template: "{{ single_action == 'play_pause' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - action: media_player.media_play_pause
+                    alias: "[[condition.play_pause_players_available.alias]]"
+                    value_template: "{{ play_pause_players | count > 0 }}"
+                  - action: >
+                      {{ 'media_player.media_pause'
+                         if expand(play_pause_players)
+                            | selectattr('state', 'eq', 'playing')
+                            | list | count > 0
+                         else 'media_player.media_play' }}
                     target:
-                      entity_id: "{{ available_players }}"
+                      entity_id: "{{ play_pause_players }}"
       - conditions:
           - condition: template
             value_template: "{{ trigger.id == 'double' }}"
@@ -259,34 +301,41 @@ action:
                     value_template: "{{ double_action == 'mute' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - repeat:
-                      for_each: "{{ available_players }}"
-                      sequence:
-                        - action: media_player.volume_mute
-                          target:
-                            entity_id: "{{ repeat.item }}"
-                          data:
-                            is_volume_muted: >
-                              {{ not state_attr(repeat.item, 'is_volume_muted') | default(false) }}
+                    alias: "[[condition.mute_players_available.alias]]"
+                    value_template: "{{ mute_players | count > 0 }}"
+                  - action: media_player.volume_mute
+                    target:
+                      entity_id: "{{ mute_players }}"
+                    data:
+                      is_volume_muted: >
+                        {{ expand(mute_players)
+                           | rejectattr('attributes.is_volume_muted', 'eq', true)
+                           | list | count > 0 }}
               - conditions:
                   - condition: template
                     value_template: "{{ double_action == 'toggle' }}"
                 sequence:
+                  - condition: template
+                    alias: "[[condition.toggle_players_available.alias]]"
+                    value_template: "{{ toggle_players | count > 0 }}"
                   - action: media_player.toggle
                     target:
-                      entity_id: "{{ media_player_ids }}"
+                      entity_id: "{{ toggle_players }}"
               - conditions:
                   - condition: template
                     value_template: "{{ double_action == 'play_pause' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - action: media_player.media_play_pause
+                    alias: "[[condition.play_pause_players_available.alias]]"
+                    value_template: "{{ play_pause_players | count > 0 }}"
+                  - action: >
+                      {{ 'media_player.media_pause'
+                         if expand(play_pause_players)
+                            | selectattr('state', 'eq', 'playing')
+                            | list | count > 0
+                         else 'media_player.media_play' }}
                     target:
-                      entity_id: "{{ available_players }}"
+                      entity_id: "{{ play_pause_players }}"
       - conditions:
           - condition: template
             value_template: "{{ trigger.id == 'hue_move' }}"
@@ -305,31 +354,38 @@ action:
                     value_template: "{{ long_action == 'mute' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - repeat:
-                      for_each: "{{ available_players }}"
-                      sequence:
-                        - action: media_player.volume_mute
-                          target:
-                            entity_id: "{{ repeat.item }}"
-                          data:
-                            is_volume_muted: >
-                              {{ not state_attr(repeat.item, 'is_volume_muted') | default(false) }}
+                    alias: "[[condition.mute_players_available.alias]]"
+                    value_template: "{{ mute_players | count > 0 }}"
+                  - action: media_player.volume_mute
+                    target:
+                      entity_id: "{{ mute_players }}"
+                    data:
+                      is_volume_muted: >
+                        {{ expand(mute_players)
+                           | rejectattr('attributes.is_volume_muted', 'eq', true)
+                           | list | count > 0 }}
               - conditions:
                   - condition: template
                     value_template: "{{ long_action == 'toggle' }}"
                 sequence:
+                  - condition: template
+                    alias: "[[condition.toggle_players_available.alias]]"
+                    value_template: "{{ toggle_players | count > 0 }}"
                   - action: media_player.toggle
                     target:
-                      entity_id: "{{ media_player_ids }}"
+                      entity_id: "{{ toggle_players }}"
               - conditions:
                   - condition: template
                     value_template: "{{ long_action == 'play_pause' }}"
                 sequence:
                   - condition: template
-                    alias: "[[condition.players_available.alias]]"
-                    value_template: "{{ available_players | count > 0 }}"
-                  - action: media_player.media_play_pause
+                    alias: "[[condition.play_pause_players_available.alias]]"
+                    value_template: "{{ play_pause_players | count > 0 }}"
+                  - action: >
+                      {{ 'media_player.media_pause'
+                         if expand(play_pause_players)
+                            | selectattr('state', 'eq', 'playing')
+                            | list | count > 0
+                         else 'media_player.media_play' }}
                     target:
-                      entity_id: "{{ available_players }}"
+                      entity_id: "{{ play_pause_players }}"

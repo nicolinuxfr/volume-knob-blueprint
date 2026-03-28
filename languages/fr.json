@@ -17,6 +17,9 @@
   "option.toggle": "Allumer/éteindre",
   "option.play_pause": "Lecture / Pause",
   "option.none": "Aucune action",
-  "condition.players_available.alias": "Au moins un lecteur multimédia est disponible",
+  "condition.volume_players_available.alias": "Au moins un lecteur multimédia prend en charge le volume",
+  "condition.mute_players_available.alias": "Au moins un lecteur multimédia prend en charge la sourdine",
+  "condition.toggle_players_available.alias": "Au moins un lecteur multimédia prend en charge allumer/éteindre",
+  "condition.play_pause_players_available.alias": "Au moins un lecteur multimédia prend en charge lecture/pause",
   "condition.long_press_debounce.alias": "Anti-rebond : ignorer le doublon d'appui long"
 }

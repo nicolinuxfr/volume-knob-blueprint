@@ -17,7 +17,9 @@ Ce blueprint permet de contrôler un ou plusieurs lecteurs multimédia avec un b
 2. Les déclenchements passent par les événements d'action MQTT exposés par l'appareil sélectionné.
 3. **La rotation** ajuste le volume vers le haut ou le bas. La vitesse de rotation est lue depuis les capteurs `action_step_size` et `action_rate` du même device, puis traduite en nombre de répétitions (1 à 12 pas de volume par événement) pour une accélération fluide.
 4. **Les clics** (simple, double, appui long) sont chacun associés à une action configurable : couper/rétablir le son, allumer/éteindre, lecture/pause ou aucune action.
-5. Les actions de volume et mute/lecture ne ciblent que les lecteurs multimédia actuellement disponibles (pas éteints, inconnus ou indisponibles). L'action allumer/éteindre cible tous les lecteurs configurés, pour pouvoir allumer un lecteur éteint.
+5. Chaque action ne cible que les lecteurs qui la prennent réellement en charge, selon `supported_features`. Vous pouvez mélanger un amplificateur et une source de streaming dans la même liste — le volume ira au récepteur, la lecture/pause à la source, etc.
+6. Quand un **récepteur** (avec sélection de source) est détecté, les commandes de volume lui sont envoyées exclusivement, évitant les doubles changements de volume.
+7. **Synchronisation multi-lecteurs** : lecture/pause et sourdine déterminent l'état cible globalement (ex. si un lecteur joue → pause pour tous), évitant la désynchronisation.
 
 ## Options de configuration
 
@@ -39,5 +41,5 @@ Ce blueprint fonctionne avec tout encodeur rotatif Zigbee2MQTT qui envoie des é
 ## Limitations connues
 
 - Le device sélectionné doit exposer des événements d'action MQTT ainsi que les capteurs `action_step_size` et `action_rate`.
-- La bascule du mute vérifie l'état de chaque lecteur individuellement. Si les lecteurs ont des états mute différents, chacun sera basculé indépendamment.
+- La détection de récepteur repose sur le flag `SELECT_SOURCE`. Si aucun lecteur ne l'a, le volume est envoyé à tous les lecteurs capables de le gérer.
 - La courbe d'accélération est calibrée pour l'IKEA SYMFONISK. D'autres boutons pourraient nécessiter des seuils différents.
