@@ -17,5 +17,6 @@
   "option.toggle": "Toggle on/off",
   "option.play_pause": "Play / Pause",
   "option.none": "No action",
-  "condition.players_available.alias": "At least one media player is available"
+  "condition.players_available.alias": "At least one media player is available",
+  "condition.long_press_debounce.alias": "Debounce: ignore duplicate long-press event"
 }

@@ -293,6 +293,12 @@ action:
         sequence:
           - condition: template
             value_template: "{{ long_action != 'none' }}"
+          - condition: template
+            alias: "[[condition.long_press_debounce.alias]]"
+            value_template: >
+              {{ expand(media_player_ids)
+                 | selectattr('last_changed', 'ge', now() - timedelta(seconds=2))
+                 | list | count == 0 }}
           - choose:
               - conditions:
                   - condition: template

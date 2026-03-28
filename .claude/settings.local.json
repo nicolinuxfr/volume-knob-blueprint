@@ -10,7 +10,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(curl -s \"https://api.github.com/repos/EPMatt/awesome-ha-blueprints/git/trees/main?recursive=1\")",
       "Bash(python3 scripts/generate_blueprints.py)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(git checkout:*)",
+      "Bash(python3 build.py)"
     ]
   }
 }

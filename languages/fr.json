@@ -17,5 +17,6 @@
   "option.toggle": "Allumer/éteindre",
   "option.play_pause": "Lecture / Pause",
   "option.none": "Aucune action",
-  "condition.players_available.alias": "Au moins un lecteur multimédia est disponible"
+  "condition.players_available.alias": "Au moins un lecteur multimédia est disponible",
+  "condition.long_press_debounce.alias": "Anti-rebond : ignorer le doublon d'appui long"
 }
