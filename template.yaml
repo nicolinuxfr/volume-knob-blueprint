@@ -195,8 +195,8 @@ action:
   - choose:
       # ── Rotation: volume up / down with acceleration ──
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.id == 'brightness_step_up' }}"
+          - condition: trigger
+            id: brightness_step_up
           - condition: template
             alias: "[[condition.volume_players_available.alias]]"
             value_template: "{{ volume_players | count > 0 }}"
@@ -229,8 +229,8 @@ action:
 
       # ── Button events (single / double / long press) ──
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.id == 'brightness_step_down' }}"
+          - condition: trigger
+            id: brightness_step_down
           - condition: template
             alias: "[[condition.volume_players_available.alias]]"
             value_template: "{{ volume_players | count > 0 }}"
@@ -261,15 +261,12 @@ action:
                   target:
                     entity_id: "{{ volume_players }}"
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.id == 'toggle' }}"
+          - condition: trigger
+            id: toggle
         sequence:
-          - condition: template
-            value_template: "{{ single_action != 'none' }}"
           - choose:
               - conditions:
-                  - condition: template
-                    value_template: "{{ single_action == 'mute' }}"
+                  - "{{ single_action == 'mute' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.mute_players_available.alias]]"
@@ -283,8 +280,7 @@ action:
                            | rejectattr('attributes.is_volume_muted', 'eq', true)
                            | list | count > 0 }}
               - conditions:
-                  - condition: template
-                    value_template: "{{ single_action == 'toggle' }}"
+                  - "{{ single_action == 'toggle' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.toggle_players_available.alias]]"
@@ -293,8 +289,7 @@ action:
                     target:
                       entity_id: "{{ toggle_players }}"
               - conditions:
-                  - condition: template
-                    value_template: "{{ single_action == 'play_pause' }}"
+                  - "{{ single_action == 'play_pause' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.play_pause_players_available.alias]]"
@@ -308,15 +303,12 @@ action:
                     target:
                       entity_id: "{{ play_pause_players }}"
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.id == 'double' }}"
+          - condition: trigger
+            id: double
         sequence:
-          - condition: template
-            value_template: "{{ double_action != 'none' }}"
           - choose:
               - conditions:
-                  - condition: template
-                    value_template: "{{ double_action == 'mute' }}"
+                  - "{{ double_action == 'mute' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.mute_players_available.alias]]"
@@ -330,8 +322,7 @@ action:
                            | rejectattr('attributes.is_volume_muted', 'eq', true)
                            | list | count > 0 }}
               - conditions:
-                  - condition: template
-                    value_template: "{{ double_action == 'toggle' }}"
+                  - "{{ double_action == 'toggle' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.toggle_players_available.alias]]"
@@ -340,8 +331,7 @@ action:
                     target:
                       entity_id: "{{ toggle_players }}"
               - conditions:
-                  - condition: template
-                    value_template: "{{ double_action == 'play_pause' }}"
+                  - "{{ double_action == 'play_pause' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.play_pause_players_available.alias]]"
@@ -355,11 +345,9 @@ action:
                     target:
                       entity_id: "{{ play_pause_players }}"
       - conditions:
-          - condition: template
-            value_template: "{{ trigger.id == 'hue_move' }}"
+          - condition: trigger
+            id: hue_move
         sequence:
-          - condition: template
-            value_template: "{{ long_action != 'none' }}"
           - condition: template
             alias: "[[condition.long_press_debounce.alias]]"
             value_template: >
@@ -368,8 +356,7 @@ action:
                  | list | count == 0 }}
           - choose:
               - conditions:
-                  - condition: template
-                    value_template: "{{ long_action == 'mute' }}"
+                  - "{{ long_action == 'mute' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.mute_players_available.alias]]"
@@ -383,8 +370,7 @@ action:
                            | rejectattr('attributes.is_volume_muted', 'eq', true)
                            | list | count > 0 }}
               - conditions:
-                  - condition: template
-                    value_template: "{{ long_action == 'toggle' }}"
+                  - "{{ long_action == 'toggle' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.toggle_players_available.alias]]"
@@ -393,8 +379,7 @@ action:
                     target:
                       entity_id: "{{ toggle_players }}"
               - conditions:
-                  - condition: template
-                    value_template: "{{ long_action == 'play_pause' }}"
+                  - "{{ long_action == 'play_pause' }}"
                 sequence:
                   - condition: template
                     alias: "[[condition.play_pause_players_available.alias]]"
