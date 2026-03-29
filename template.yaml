@@ -198,30 +198,40 @@ action:
           - variables:
               step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
               action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
-              volume_delta: >
-                {% set score = step_size + (action_rate * 6) %}
-                {% if score <= 35 %}
-                  0.01
-                {% elif score <= 60 %}
-                  0.02
-                {% elif score <= 85 %}
-                  0.04
-                {% elif score <= 110 %}
-                  0.06
-                {% elif score <= 140 %}
-                  0.10
-                {% else %}
-                  0.12
-                {% endif %}
-          - repeat:
-              for_each: "{{ volume_players }}"
-              sequence:
-                - action: media_player.volume_set
-                  target:
-                    entity_id: "{{ repeat.item }}"
-                  data:
-                    volume_level: >
-                      {{ [state_attr(repeat.item, 'volume_level') | float(0) + volume_delta | float, 1.0] | min }}
+              score: "{{ step_size + (action_rate * 6) }}"
+          - choose:
+              - conditions:
+                  - "{{ score | int <= 35 }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ volume_players }}"
+                      sequence:
+                        - action: media_player.volume_up
+                          target:
+                            entity_id: "{{ repeat.item }}"
+            default:
+              - variables:
+                  volume_delta: >
+                    {% if score | int <= 60 %}
+                      0.02
+                    {% elif score | int <= 85 %}
+                      0.04
+                    {% elif score | int <= 110 %}
+                      0.06
+                    {% elif score | int <= 140 %}
+                      0.10
+                    {% else %}
+                      0.12
+                    {% endif %}
+              - repeat:
+                  for_each: "{{ volume_players }}"
+                  sequence:
+                    - action: media_player.volume_set
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                      data:
+                        volume_level: >
+                          {{ [state_attr(repeat.item, 'volume_level') | float(0) + volume_delta | float, 1.0] | min }}
 
       # ── Rotation: volume down with acceleration ──
       - conditions:
@@ -234,30 +244,40 @@ action:
           - variables:
               step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
               action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
-              volume_delta: >
-                {% set score = step_size + (action_rate * 6) %}
-                {% if score <= 35 %}
-                  0.01
-                {% elif score <= 60 %}
-                  0.02
-                {% elif score <= 85 %}
-                  0.04
-                {% elif score <= 110 %}
-                  0.06
-                {% elif score <= 140 %}
-                  0.10
-                {% else %}
-                  0.12
-                {% endif %}
-          - repeat:
-              for_each: "{{ volume_players }}"
-              sequence:
-                - action: media_player.volume_set
-                  target:
-                    entity_id: "{{ repeat.item }}"
-                  data:
-                    volume_level: >
-                      {{ [state_attr(repeat.item, 'volume_level') | float(0) - volume_delta | float, 0.0] | max }}
+              score: "{{ step_size + (action_rate * 6) }}"
+          - choose:
+              - conditions:
+                  - "{{ score | int <= 35 }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ volume_players }}"
+                      sequence:
+                        - action: media_player.volume_down
+                          target:
+                            entity_id: "{{ repeat.item }}"
+            default:
+              - variables:
+                  volume_delta: >
+                    {% if score | int <= 60 %}
+                      0.02
+                    {% elif score | int <= 85 %}
+                      0.04
+                    {% elif score | int <= 110 %}
+                      0.06
+                    {% elif score | int <= 140 %}
+                      0.10
+                    {% else %}
+                      0.12
+                    {% endif %}
+              - repeat:
+                  for_each: "{{ volume_players }}"
+                  sequence:
+                    - action: media_player.volume_set
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                      data:
+                        volume_level: >
+                          {{ [state_attr(repeat.item, 'volume_level') | float(0) - volume_delta | float, 0.0] | max }}
       - conditions:
           - condition: trigger
             id: toggle
