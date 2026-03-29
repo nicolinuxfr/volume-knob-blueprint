@@ -79,8 +79,7 @@ blueprint:
                 - label: "[[option.none]]"
                   value: "none"
 
-mode: queued
-max: 20
+mode: restart
 
 variables:
   z2m_device_id: !input z2m_device
@@ -188,6 +187,7 @@ trigger:
 action:
   - choose:
       # ── Rotation: volume up / down with acceleration ──
+      # ── Rotation: volume up with acceleration ──
       - conditions:
           - condition: trigger
             id: brightness_step_up
@@ -196,32 +196,34 @@ action:
             value_template: "{{ volume_players | count > 0 }}"
         sequence:
           - variables:
-              direction: "up"
               step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
               action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
-              repeat_count: >
+              volume_delta: >
                 {% set score = step_size + (action_rate * 6) %}
                 {% if score <= 35 %}
-                  1
+                  0.01
                 {% elif score <= 60 %}
-                  2
+                  0.02
                 {% elif score <= 85 %}
-                  4
+                  0.04
                 {% elif score <= 110 %}
-                  6
+                  0.06
                 {% elif score <= 140 %}
-                  10
+                  0.10
                 {% else %}
-                  12
+                  0.12
                 {% endif %}
           - repeat:
-              count: "{{ repeat_count | int }}"
+              for_each: "{{ volume_players }}"
               sequence:
-                - action: "media_player.volume_{{ direction }}"
+                - action: media_player.volume_set
                   target:
-                    entity_id: "{{ volume_players }}"
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    volume_level: >
+                      {{ [state_attr(repeat.item, 'volume_level') | float(0) + volume_delta | float, 1.0] | min }}
 
-      # ── Button events (single / double / long press) ──
+      # ── Rotation: volume down with acceleration ──
       - conditions:
           - condition: trigger
             id: brightness_step_down
@@ -230,30 +232,32 @@ action:
             value_template: "{{ volume_players | count > 0 }}"
         sequence:
           - variables:
-              direction: "down"
               step_size: "{{ states(z2m_step_size_entity) | int(0) }}"
               action_rate: "{{ states(z2m_action_rate_entity) | int(0) }}"
-              repeat_count: >
+              volume_delta: >
                 {% set score = step_size + (action_rate * 6) %}
                 {% if score <= 35 %}
-                  1
+                  0.01
                 {% elif score <= 60 %}
-                  2
+                  0.02
                 {% elif score <= 85 %}
-                  4
+                  0.04
                 {% elif score <= 110 %}
-                  6
+                  0.06
                 {% elif score <= 140 %}
-                  10
+                  0.10
                 {% else %}
-                  12
+                  0.12
                 {% endif %}
           - repeat:
-              count: "{{ repeat_count | int }}"
+              for_each: "{{ volume_players }}"
               sequence:
-                - action: "media_player.volume_{{ direction }}"
+                - action: media_player.volume_set
                   target:
-                    entity_id: "{{ volume_players }}"
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    volume_level: >
+                      {{ [state_attr(repeat.item, 'volume_level') | float(0) - volume_delta | float, 0.0] | max }}
       - conditions:
           - condition: trigger
             id: toggle

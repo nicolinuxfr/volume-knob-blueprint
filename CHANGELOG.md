@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.3.3
+
+- Fix for receivers (like my Denon) who are submerged by a lot of commands and disconnect after that. 
+
 ## 2026.3.2
 
 - You can choose multiple media entities and the automation should send the commands compatible with each one. It even guesses if a device is only there as a source (like an Apple TV) and the other is there as an audio output (like a home-cineme receiver) and handle each gracefully. 
